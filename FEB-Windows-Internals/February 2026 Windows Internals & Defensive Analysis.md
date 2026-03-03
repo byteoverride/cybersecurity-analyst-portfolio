@@ -38,7 +38,8 @@ To streamline analysis, I developed an XML query to isolate failed authenticatio
 </QueryList>
 ```
 
-![ac540f9e13d697361af178e5cf2d8572.png](:/c6f928a3dcde4b459dc23886b5ec9ed8)
+<img width="1920" height="1300" alt="image" src="https://github.com/user-attachments/assets/475165e7-3838-4e5c-a023-acdd8a10e988" />
+
 
 * * *
 
@@ -73,11 +74,13 @@ In my sandbox, I simulated a tool loading the .NET runtime into a native process
 
 * To showcase unmanaged PowerShell injection, we can inject an unmanaged PowerShell-like DLL into a random process, such as spoolsv.exe. We can do that by utilizing the PSInject project in the following manner.
 ### Spoolsv ID=2400
-  ![4f244c6f6b1d6b753f560e58ed64def4.png](:/8e9dbbee164840759ce40c7ff322a2d0)
-  ### After Injection
-![328a01346e4dd5c8b11d0f0a4156a4fd.png](:/b06a40ad29c049609d5fbc6755e53489)
+<img width="1136" height="858" alt="image" src="https://github.com/user-attachments/assets/e62c4517-fe74-4762-a3a9-dca4f2986765" />
 
-![6e219da25965f854d7b3af906295dd93.png](:/c496ed426bbc401bb355270958f4b28f)
+ ### After Injection
+<img width="993" height="587" alt="image" src="https://github.com/user-attachments/assets/895082ff-857c-4d2e-83dc-07a5ce29a2eb" />
+
+<img width="1230" height="587" alt="image" src="https://github.com/user-attachments/assets/77dd150e-23f8-4e6b-b5cc-0fb0c6bdf794" />
+
 
 ```
 SilkETW.exe -t user -pn Microsoft-Windows-DotNETRuntime -uk 0x2038 -ot file -p C:\Users\techadmin\Downloads\logs\etw.json
@@ -103,12 +106,14 @@ A **Service Principal Name (SPN)**  : An instance of a service is uniquely ident
 
 I executed a simulated credential dump (T1003) on a test VM. This technique targets the Local Security Authority Subsystem Service (LSASS) to harvest passwords or hashes.
 #### Tools: mimikatz (Credential Dumping tool)
-![f7b20f5eab93c30c6b8ba463e6019d49.png](:/7a70e23fbf18426294decc97d358fada)
+<img width="1205" height="978" alt="image" src="https://github.com/user-attachments/assets/e4b2d6e1-220f-4d13-a54e-1a63831df751" />
+
 
 ### Detection Results
-![3517f9ab8d10ed36759ee2ffc817dfb7.png](:/660ee8a736d248a791559a255a2268bc)
+<img width="1272" height="347" alt="image" src="https://github.com/user-attachments/assets/04f16134-5134-488b-846a-57162248c7a2" />
 
-![a90f5841e4ee9ac43fbe80ac0a1651d2.png](:/48d0c115cd5746aea83bb4eb5f1710bd)
+<img width="1920" height="1027" alt="image" src="https://github.com/user-attachments/assets/45a7b185-0ba3-4850-aa08-206957a15043" />
+
 
 ```powershell
 Get-WinEvent -FilterHashtable @{LogName="Microsoft-Windows-Sysmon/Operational"; ID=10} | Where-Object { $_.Message -match "mimikatz.exe" -and $_.Message -match "lsass.exe" } | Format-List *
@@ -122,14 +127,19 @@ Get-WinEvent -FilterHashtable @{LogName="Microsoft-Windows-Sysmon/Operational"; 
 * Tools: Stephen Fewer's "hello world" reflective DLL [ https://github.com/stephenfewer/ReflectiveDLLInjection/tree/master/bin ]
 * Rename `reflective_dll.x64.dll` to `WININET.dll`
 * Copy calc.exe to Desktop (any user controlled dir) same as the compromised DLL
-![3db1a4ab9eb1b118a3ba608920cb9423.png](:/47e82d405b4e420aaf60d50a2a311a46)
+  
+<img width="786" height="332" alt="image" src="https://github.com/user-attachments/assets/81db104f-1d4a-485f-8aa9-6bdea49200af" />
+
 
 ### Detection Results
-![5aaa12db685d3ed4119fd5df0f4bc74b.png](:/5486d3e49b06453f8bb773aa436db71b)
+<img width="1920" height="921" alt="image" src="https://github.com/user-attachments/assets/ae8ad33f-8d62-449b-9ea1-af189bb289c7" />
+
 ```powershell
 Get-WinEvent -FilterHashtable @{LogName="Microsoft-Windows-Sysmon/Operational"; ID=7} | Where-Object { $_.Message -match "calc.exe" -and $_.Message -match "WININET.dll" } | Format-List *
 ```
-![fbf836000090f1d54a4c3791b45eb556.png](:/f7d8d0329bdb4738a6f7db8eba1731dd)
+<img width="1920" height="869" alt="image" src="https://github.com/user-attachments/assets/41179c3b-ee1d-4f12-bb4c-7a3276bcd198" />
+
+
 ## Self-Assessment & Reflection
 
 - **Environment:** All labs were conducted in a controlled sandbox environment on a local workstation to ensure safety and repeatability.
