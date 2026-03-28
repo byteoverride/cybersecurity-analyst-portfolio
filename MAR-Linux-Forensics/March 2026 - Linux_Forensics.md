@@ -54,9 +54,9 @@ su - testuser
 whoami
 # Output: testuser
 ```
-
 <!-- IMAGE: Screenshot showing user creation, password set, su to testuser, and whoami output -->
-> **[IMAGE PLACEHOLDER — Lab 1: User creation and privilege escalation terminal output]**
+<img width="665" height="280" alt="image" src="https://github.com/user-attachments/assets/7767cdb8-b600-4989-b0fa-29bf583e1ed8" />
+
 
 **Step 3 — Delete the user and remove their home directory:**
 
@@ -91,8 +91,9 @@ sudo grep "testuser" /var/log/secure
 | Mar 18 21:27:51 | `userdel[3234]: removed group 'testuser' owned by 'testuser'` | Group removed |
 | Mar 18 21:27:51 | `userdel[3234]: removed shadow group 'testuser' owned by 'testuser'` | Shadow entry removed |
 
-<!-- IMAGE: Screenshot showing grep output of /var/log/secure with the full testuser lifecycle highlighted -->
-> **[IMAGE PLACEHOLDER — Lab 1: /var/log/secure showing the complete deletion evidence with highlighted entries]**
+<!-- IMAGE: Screenshot showing repeated su attempts with "Authentication failure" messages -->
+<img width="665" height="315" alt="image" src="https://github.com/user-attachments/assets/11f46841-9c3d-4581-ab55-8f5cc49c6c2f" />
+
 
 ### Key Takeaways
 
@@ -130,9 +131,9 @@ su - attacker
 su - attacker
 # Authentication failure
 ```
-
 <!-- IMAGE: Screenshot showing repeated su attempts with "Authentication failure" messages -->
-> **[IMAGE PLACEHOLDER — Lab 2: Terminal showing repeated su authentication failures]**
+<img width="665" height="252" alt="image" src="https://github.com/user-attachments/assets/c6042969-7e58-42a7-8b48-e27f98230950" />
+
 
 ### Forensic Detection — Three Log Sources
 
@@ -147,7 +148,7 @@ cat audit.log | grep "attacker"
 The audit log captures every authentication event at the kernel level with full detail — UIDs, PIDs, session IDs, executable paths, and success/failure status. This is the most granular source.
 
 <!-- IMAGE: Screenshot of audit.log output showing the attacker authentication events -->
-> **[IMAGE PLACEHOLDER — Lab 2: audit.log showing authentication failure events with PIDs and UIDs]**
+<img width="665" height="91" alt="image" src="https://github.com/user-attachments/assets/f46693aa-9c33-4701-9fcb-214854d9f78f" />
 
 Key fields to look for in audit.log:
 - `res=failed` — authentication was rejected
@@ -173,7 +174,7 @@ This gives a more readable view. The key entries:
 | Mar 18 21:34:16 | `pam_unix(su-l:auth): authentication failure; logname=psalms uid=1000` | PAM failure again |
 
 <!-- IMAGE: Screenshot of /var/log/secure showing authentication failures highlighted -->
-> **[IMAGE PLACEHOLDER — Lab 2: /var/log/secure showing failed password attempts with highlighted failure entries]**
+<img width="665" height="125" alt="image" src="https://github.com/user-attachments/assets/946c8ab4-9c51-49ab-ae92-4b75baad3bd0" />
 
 **Searching specifically for failures:**
 
@@ -232,9 +233,9 @@ sudo cat /var/spool/cron/psalms
 ls -lrt /tmp/ | grep ping_log
 # Output: -rw-r--r--. 1 psalms psalms 615 Mar 18 21:55 ping_log.txt
 ```
-
 <!-- IMAGE: Screenshot showing crontab -l, cat /var/spool/cron/psalms, and ls -lrt showing the ping_log.txt file -->
-> **[IMAGE PLACEHOLDER — Lab 3: Crontab listing, spool file contents, and evidence of execution in /tmp/]**
+<img width="665" height="233" alt="image" src="https://github.com/user-attachments/assets/387b8558-ee0a-4767-bfda-1c84b41cfe35" />
+
 
 **Step 4 — Check system-level crons (attackers often target these for root persistence):**
 
@@ -300,9 +301,9 @@ The `-v "^#"` filter removes comments, making injected lines stand out. The last
 ```
 ping -c 1 8.8.8.8 > /tmp/.hidden_ping &
 ```
-
 <!-- IMAGE: Screenshot showing cat ~/.bashrc with the malicious ping line highlighted at the bottom -->
-> **[IMAGE PLACEHOLDER — Lab 5: .bashrc contents with injected ping command visible at the bottom, highlighted]**
+<img width="447" height="299" alt="image" src="https://github.com/user-attachments/assets/a818e773-8b07-4700-97b6-09fbfd95594f" />
+
 
 **Step 2 — Compare against the default `.bashrc` template:**
 
@@ -365,7 +366,8 @@ dd if=/dev/zero of=/dev/null &
 This spawns 4 `dd` processes that consume 100% CPU each, simulating a cryptominer, resource-intensive malware, or a fork bomb.
 
 <!-- IMAGE: Screenshot showing the 4 dd processes being spawned with their PIDs -->
-> **[IMAGE PLACEHOLDER — Lab 6: Terminal showing 4 background dd processes with PIDs 4137, 4138, 4141, 4143]**
+<img width="665" height="159" alt="image" src="https://github.com/user-attachments/assets/a1af534c-255b-4ec3-81da-e8333c709c70" />
+
 
 ### Investigation Walkthrough
 
@@ -385,7 +387,8 @@ top -b -n 1 | head -20
 Immediately suspicious: 4 processes by the same user (`attacker`) consuming nearly all CPU. The `dd` command is a legitimate utility, but running 4 instances writing to `/dev/null` is abnormal.
 
 <!-- IMAGE: Screenshot of top output showing the 4 dd processes consuming all CPU -->
-> **[IMAGE PLACEHOLDER — Lab 6: top output showing attacker-owned dd processes dominating CPU usage]**
+<img width="665" height="258" alt="image" src="https://github.com/user-attachments/assets/4bb83bad-653b-4de7-83c0-a73abc2253d6" />
+
 
 **Step 2 — Get more detail on the suspicious processes:**
 
@@ -412,7 +415,8 @@ netstat -tulpn 2>/dev/null || ss -tulpn
 ```
 
 <!-- IMAGE: Screenshot of ss -tulpn showing network connections with associated PIDs -->
-> **[IMAGE PLACEHOLDER — Lab 6: ss -tulpn output showing listening ports and associated processes]**
+<img width="665" height="75" alt="image" src="https://github.com/user-attachments/assets/2d31a1a9-cc67-461f-b6d7-919d76269a5a" />
+
 
 This reveals which processes have open network connections. If the CPU-eating process also has a network socket open, it's likely phoning home (C2) or participating in a DDoS.
 
@@ -489,7 +493,8 @@ cp /usr/bin/ping /tmp/sshd-helper
 Now if someone runs `ps aux`, they see a process called `sshd-helper` — which looks like a legitimate OpenSSH helper process. Most admins wouldn't look twice.
 
 <!-- IMAGE: Screenshot showing the cp command, execution, and the ping output from the renamed binary -->
-> **[IMAGE PLACEHOLDER — Lab 7: Terminal showing binary rename, execution, and ICMP ping output from "sshd-helper"]**
+<img width="665" height="206" alt="image" src="https://github.com/user-attachments/assets/b305087e-88fd-4e74-9d06-9ada18a5d8bb" />
+
 
 ### Forensic Detection
 
@@ -502,7 +507,8 @@ ps aux | grep "sshd-helper"
 The process appears in the process list under its fake name. Without further investigation, it looks legitimate.
 
 <!-- IMAGE: Screenshot of ps aux showing the sshd-helper process -->
-> **[IMAGE PLACEHOLDER — Lab 7: ps aux output showing sshd-helper process running as attacker user]**
+<img width="665" height="206" alt="image" src="https://github.com/user-attachments/assets/6905aa35-5179-48c4-9222-04b17782a3b7" />
+
 
 **Step 2 — Unmask it using `/proc`:**
 
