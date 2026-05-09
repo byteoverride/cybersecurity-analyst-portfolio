@@ -1,4 +1,4 @@
-# Month 4: The SIEM — Splunk & Detection Engineering
+# Month 4: The SIEM  Splunk & Detection Engineering
 
 **Author:** byteoverride
 **Date:** April 2026
@@ -13,8 +13,8 @@ This month was about going from "I can read logs manually" to "I can hunt throug
 
 Two main exercises:
 
-1. **Lab 1 — Local Brute Force Investigation**: Built a 3-machine attack lab, ran Hydra against a target, and detected + investigated the brute force in real time through Splunk.
-2. **Lab 2 — Splunk BOTS v1**: Investigated a full APT-style intrusion against Wayne Enterprises — from vulnerability scanning through brute force, webshell upload, and website defacement — using enterprise-scale Splunk telemetry.
+1. **Lab 1 - Local Brute Force Investigation**: Built a 3-machine attack lab, ran Hydra against a target, and detected + investigated the brute force in real time through Splunk.
+2. **Lab 2 - Splunk BOTS v1**: Investigated a full APT-style intrusion against Wayne Enterprises — from vulnerability scanning through brute force, webshell upload, and website defacement — using enterprise-scale Splunk telemetry.
 
 **Skills demonstrated:**
 - Splunk deployment and log ingestion (Linux `secure`/`auth.log` forwarding)
@@ -65,7 +65,8 @@ hydra -L names.txt -P pass.txt -t 4 -o wave1.txt ssh://192.168.1.24
 - `-o wave1.txt` — save successful creds to file
 
 <!-- IMAGE: Hydra running against the Red Hat victim -->
-> **[IMAGE PLACEHOLDER — Lab 1: Hydra execution on Kali showing brute force attempts against 192.168.1.24]**
+<img width="1920" height="1087" alt="image" src="https://github.com/user-attachments/assets/bac5b583-d66d-404b-81bc-59c3444b845a" />
+
 
 ## Detection in Splunk
 
@@ -78,7 +79,8 @@ index="main" sourcetype="linux_secure" "Failed Password" | head 20
 ```
 
 <!-- IMAGE: Splunk search results showing Failed Password events -->
-> **[IMAGE PLACEHOLDER — Lab 1: Splunk showing "Failed Password" events with source IP, usernames, and timestamps]**
+<img width="1920" height="1085" alt="image" src="https://github.com/user-attachments/assets/7c436152-65a6-48fb-83d2-8036428d3c49" />
+
 
 The logs immediately reveal the attack pattern: rapid-fire failed password attempts from the same source IP (`192.168.1.139`), cycling through different usernames. The `from` field in each log entry points directly to the attacker's IP.
 
@@ -87,14 +89,16 @@ The logs immediately reveal the attack pattern: rapid-fire failed password attem
 During the brute force, Hydra eventually guesses the correct credentials. The log pattern shifts from `Failed password` to `Accepted password`:
 
 <!-- IMAGE: Splunk showing the moment Hydra guesses the correct password -->
-> **[IMAGE PLACEHOLDER — Lab 1: Splunk log showing "Accepted password" event from the attacker IP — the moment the brute force succeeds]**
+
+<img width="1920" height="810" alt="image" src="https://github.com/user-attachments/assets/cbe4eb56-fbc6-41c2-aab8-07da838c5d03" />
 
 ### Step 3 — Confirm the attacker logged in
 
 After Hydra reports the successful credential, the attacker proceeds to log in with the discovered credentials. The session establishment appears in the logs:
 
 <!-- IMAGE: Splunk showing the authenticated session from the attacker -->
-> **[IMAGE PLACEHOLDER — Lab 1: Splunk showing successful SSH session opened from 192.168.1.139 to the victim]**
+<img width="1920" height="427" alt="image" src="https://github.com/user-attachments/assets/329bd69a-16f9-4936-8ba3-873fe65469d6" />
+
 
 ### Step 4 — Attribution query (internet-facing variant)
 
@@ -121,7 +125,8 @@ This produces a Splunk geographic heatmap showing where brute force attempts ori
 # Lab 2 — Splunk BOTS v1: Full Walkthrough
 
 <!-- IMAGE: BOTS v1 landing page or challenge interface -->
-> **[IMAGE PLACEHOLDER — BOTS v1: Challenge landing page at bots.splunk.com]**
+
+<img width="1030" height="626" alt="image" src="https://github.com/user-attachments/assets/4008fa2b-d8ab-459b-becc-dc241b2c1880" />
 
 ## About the Lab
 
@@ -153,7 +158,8 @@ index=botsv1 earliest=0 latest=now
 ```
 
 <!-- IMAGE: Sourcetype count results -->
-> **[IMAGE PLACEHOLDER — BOTS: Sourcetype distribution showing event counts per data source]**
+<img width="1920" height="1143" alt="image" src="https://github.com/user-attachments/assets/6bc305ab-fe5d-40ad-a459-6b96179bf1a9" />
+
 
 The most useful sourcetypes for the web defacement scenario:
 
@@ -200,7 +206,8 @@ index=botsv1 sourcetype=stream:http src=40.80.148.42
 The user agent string returned scanner-specific markers including Acunetix strings. No legitimate browser includes scanner names in its UA.
 
 <!-- IMAGE: Stats showing the top src_ip with high count and URI diversity -->
-> **[IMAGE PLACEHOLDER — Q1: SPL results showing 40.80.148.42 with dominant request count and unique URI count]**
+<img width="1920" height="519" alt="image" src="https://github.com/user-attachments/assets/4558a166-8c7f-4eeb-9f37-8b5c21fbfe59" />
+
 
 **Answer:** `40.80.148.42`
 
@@ -219,7 +226,8 @@ index=botsv1 sourcetype="stream:http" src_ip="40.80.148.42"
 The user agent contained `Acunetix-Aspect` and request bodies had `acunetix` markers. The user agent string is the cleanest fingerprint of which scanner ran.
 
 <!-- IMAGE: User agent results showing Acunetix -->
-> **[IMAGE PLACEHOLDER — Q2: SPL results showing Acunetix user agent strings from the scanner IP]**
+<img width="1920" height="708" alt="image" src="https://github.com/user-attachments/assets/ceb8a765-18a1-446e-a094-0c277f0c8e93" />
+
 
 **Answer:** `Acunetix`
 
@@ -239,7 +247,8 @@ Any CMS leaves URI fingerprints. Joomla has `/administrator/`, `/components/`, `
 I saw heavy traffic to `/joomla/` and `/joomla/administrator/index.php`, plus the scanner kept probing Joomla components specifically.
 
 <!-- IMAGE: HTTP requests showing Joomla paths -->
-> **[IMAGE PLACEHOLDER — Q3: SPL results showing URI paths with /joomla/ and /administrator/ patterns]**
+<img width="1920" height="747" alt="image" src="https://github.com/user-attachments/assets/fdd7131b-1952-42cf-b6b6-9503cd0b006e" />
+
 
 **Answer:** `Joomla`
 
@@ -258,7 +267,8 @@ index=botsv1 sourcetype=stream:http src_ip=192.168.250.70
 A defacement involves swapping or planting an image on the site. The defacement file gets requested heavily after the swap because every visitor to the homepage pulls it. A new image suddenly appearing at the top of the count list is the candidate.
 
 <!-- IMAGE: URI table showing the defacement image file -->
-> **[IMAGE PLACEHOLDER — Q4: SPL results showing poisonivy-is-coming-for-you-batman.jpeg in the URI list]**
+<img width="1920" height="589" alt="image" src="https://github.com/user-attachments/assets/87dbce33-64fa-4e76-afeb-da05705f2bac" />
+
 
 **Answer:** `poisonivy-is-coming-for-you-batman.jpeg`
 
@@ -278,7 +288,8 @@ index=botsv1 sourcetype="stream:http" "poisonivy-is-coming-for-you-batman.jpeg"
 Dynamic DNS providers have well-known suffixes (`no-ip.org`, `dyndns.org`, `hopto.org`, `ddns.net`). Filtering for those narrows it down. I also pivoted from the attacker IPs to find what hostnames resolved to them.
 
 <!-- IMAGE: Site values showing the FQDN -->
-> **[IMAGE PLACEHOLDER — Q5: SPL results showing the dynamic DNS FQDN hosting the defacement image]**
+<img width="1663" height="394" alt="image" src="https://github.com/user-attachments/assets/d3ad5f40-f4d0-49b1-b979-cbee1c0b23fe" />
+
 
 **Answer:** `prankglassinebracket.tumblr.com`
 
@@ -298,7 +309,8 @@ index=botsv1 "prankglassinebracket.jumpingcrab.com"
 Cross-referenced threat intel sources included in the BOTS dataset for known Po1s0n1vy infrastructure.
 
 <!-- IMAGE: Source IP values tied to the Po1s0n1vy domain -->
-> **[IMAGE PLACEHOLDER — Q6: SPL results showing 23.22.63.114 tied to Po1s0n1vy infrastructure]**
+<img width="1663" height="394" alt="image" src="https://github.com/user-attachments/assets/a788588d-9e87-4fad-a573-783fa6942f3b" />
+
 
 **Answer:** `23.22.63.114`
 
@@ -318,7 +330,8 @@ index=botsv1 sourcetype="stream:http" http_method=POST imreallynotbatman.com
 Brute force is a flood of POST requests to a login endpoint. Filtering by HTTP POST plus the admin URI plus high count by source IP catches it cleanly. The scanner from Q1 used a different IP for recon than for exploitation — a deliberate operational choice to make attribution harder.
 
 <!-- IMAGE: POST count by src_ip showing the brute force source -->
-> **[IMAGE PLACEHOLDER — Q7: SPL results showing 23.22.63.114 with dominant POST request count]**
+<img width="1663" height="394" alt="image" src="https://github.com/user-attachments/assets/85af39c7-cba9-4dfb-b51d-102d26af359a" />
+
 
 **Answer:** `23.22.63.114`
 
@@ -337,7 +350,8 @@ index=botsv1 sourcetype="stream:http" http_method=POST "*.exe"
 The attacker uploaded an executable through the Joomla admin after gaining access. POST requests with `.exe` in either the URI or the form data capture the upload moment.
 
 <!-- IMAGE: HTTP POST showing the executable upload -->
-> **[IMAGE PLACEHOLDER — Q8: SPL results showing 3791.exe in the HTTP POST data]**
+<img width="1660" height="388" alt="image" src="https://github.com/user-attachments/assets/be49ab33-d027-4393-a4cb-0f49fd41e3dd" />
+
 
 **Answer:** `3791.exe`
 
@@ -356,7 +370,8 @@ index=botsv1 sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" Co
 In a real investigation you'd take this MD5 straight to VirusTotal, ANY.RUN, or your internal sandbox. In BOTS, this hash matches a known Po1s0n1vy payload.
 
 <!-- IMAGE: Sysmon event showing the MD5 hash -->
-> **[IMAGE PLACEHOLDER — Q9: Sysmon event log showing MD5 hash for 3791.exe]**
+<img width="1871" height="588" alt="image" src="https://github.com/user-attachments/assets/8d2e2412-a68d-4bce-a02e-f342b7645f4e" />
+
 
 **Answer:** `AAE3F5A29935E6ABCC2C2754D12A9AF0`
 
@@ -397,7 +412,8 @@ index=botsv1 sourcetype=stream:http imreallynotbatman.com http_method=POST src=2
 Brute force scripts iterate through a wordlist in order. Sorting POST requests from the attacker IP by `_time` ascending and pulling the first password attempt gives you the wordlist's first entry.
 
 <!-- IMAGE: First password attempts sorted by time -->
-> **[IMAGE PLACEHOLDER — Q12: SPL results showing the first brute force password attempts in chronological order]**
+<img width="1871" height="588" alt="image" src="https://github.com/user-attachments/assets/2ae0ac70-c19a-4bf4-9260-e2beb586beb0" />
+
 
 **Answer:** `12345678`
 
@@ -462,7 +478,8 @@ index=botsv1 sourcetype=stream:http imreallynotbatman.com http_method=POST src=2
 `len()` calculates each password's character count, `avg()` gives the mean, `round()` to 0 decimal places matches the expected format.
 
 <!-- IMAGE: Average password length result -->
-> **[IMAGE PLACEHOLDER — Q15: SPL result showing average password length of 6]**
+<img width="1871" height="588" alt="image" src="https://github.com/user-attachments/assets/83c5d289-6cd1-408f-a945-89c10c9d8b27" />
+
 
 **Answer:** `6`
 
@@ -485,7 +502,8 @@ index=botsv1 sourcetype=stream:http http_method=POST uri="*administrator*" form_
 The brute force IP (`23.22.63.114`) submitted `batman` as part of the dictionary attack. A separate, cleaner login then used `batman` from the original recon IP (`40.80.148.42`). The time difference between the brute force discovering the password and the actual login is the answer.
 
 <!-- IMAGE: Time comparison between the two IPs submitting "batman" -->
-> **[IMAGE PLACEHOLDER — Q16: SPL results showing timestamps for both IPs submitting the "batman" password]**
+<img width="1869" height="430" alt="image" src="https://github.com/user-attachments/assets/2fb44e10-3e34-4323-a4e1-bf39d4a9767a" />
+
 
 **Answer:** `92.17`
 
@@ -506,7 +524,8 @@ index=botsv1 sourcetype=stream:http imreallynotbatman.com http_method=POST src=2
 `dc()` is distinct count — it deduplicates the password list. Filtering to the brute force IP only ensures legitimate user attempts don't pollute the count.
 
 <!-- IMAGE: Distinct password count result -->
-> **[IMAGE PLACEHOLDER — Q17: SPL result showing 412 unique passwords attempted]**
+<img width="1869" height="430" alt="image" src="https://github.com/user-attachments/assets/02f40b05-a9dc-48ce-b1f8-6998547ecf88" />
+
 
 **Answer:** `412`
 
