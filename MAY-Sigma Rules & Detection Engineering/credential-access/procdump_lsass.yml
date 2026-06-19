@@ -1,0 +1,36 @@
+title: ProcDump Used Against LSASS
+id: 7b2e9d4a-1c8f-4e3d-b5a2-9f8e7d6c5b4a
+status: experimental
+description: |
+    Detects use of Sysinternals ProcDump to dump the memory of the LSASS process.
+    ProcDump is a legitimate signed Microsoft binary often abused (a 'Living Off The Land
+    Binary' / LOLBin) by attackers to extract credentials without dropping known-malicious tools.
+references:
+    - https://attack.mitre.org/techniques/T1003/001/
+    - https://lolbas-project.github.io/
+    - https://docs.microsoft.com/en-us/sysinternals/downloads/procdump
+author: Psalms (@byteoverride)
+date: 2026/05/15
+tags:
+    - attack.credential-access
+    - attack.t1003.001
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection_img:
+        - Image|endswith:
+            - '\procdump.exe'
+            - '\procdump64.exe'
+        - OriginalFileName:
+            - 'procdump'
+            - 'procdump64.exe'
+    selection_cmd:
+        CommandLine|contains:
+            - 'lsass'
+            - '-ma '
+    condition: selection_img and selection_cmd
+falsepositives:
+    - Legitimate forensic investigation by IR teams
+    - System administrators troubleshooting LSASS issues
+level: high

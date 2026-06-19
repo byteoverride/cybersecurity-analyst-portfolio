@@ -1,0 +1,62 @@
+title: Windows Logon Failure (Brute Force Signal)
+id: 7b3d9e4a-2c5f-4d8b-1a9e-6c5d4b3a2e1f
+status: experimental
+description: |
+    Detects Windows logon failure events (4625). On its own a single 4625 is noise — used
+    as input to the correlation rule below which thresholds brute-force and password-spray
+    patterns above normal user error rates.
+references:
+    - https://attack.mitre.org/techniques/T1110/
+    - https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4625
+author: Psalms (@byteoverride)
+date: 2026/05/15
+tags:
+    - attack.credential-access
+    - attack.t1110
+logsource:
+    product: windows
+    service: security
+detection:
+    selection:
+        EventID: 4625
+    condition: selection
+falsepositives:
+    - Users mistyping passwords
+    - Service accounts with rotated credentials
+level: informational
+---
+title: Windows Logon Brute Force Correlation
+id: 7b3d9e4a-2c5f-4d8b-1a9e-6c5d4b3a2e20
+status: experimental
+description: |
+    Flags brute force when 15+ logon failures occur in 10 minutes from the same source.
+    Also detects password spray — a single source attempting many distinct usernames.
+correlation:
+    type: event_count
+    rules:
+        - 7b3d9e4a-2c5f-4d8b-1a9e-6c5d4b3a2e1f
+    group-by:
+        - IpAddress
+    timespan: 10m
+    condition:
+        gte: 15
+level: high
+---
+title: Windows Password Spray Correlation
+id: 7b3d9e4a-2c5f-4d8b-1a9e-6c5d4b3a2e21
+status: experimental
+description: |
+    Detects password spray — one source IP attempting authentication against many
+    distinct usernames in a short window (a hallmark of spray attacks designed to
+    avoid per-account lockouts).
+correlation:
+    type: value_count
+    rules:
+        - 7b3d9e4a-2c5f-4d8b-1a9e-6c5d4b3a2e1f
+    group-by:
+        - IpAddress
+    timespan: 30m
+    condition:
+        field: TargetUserName
+        gte: 10
+level: high

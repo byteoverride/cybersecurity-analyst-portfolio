@@ -1,0 +1,30 @@
+title: LSASS Memory Dump via comsvcs.dll MiniDump
+id: c4d8e3f1-2a5b-4c9d-8e7f-6b5a4c3d2e1f
+status: experimental
+description: |
+    Detects credential dumping via rundll32 executing comsvcs.dll's MiniDump export.
+    This is a fileless LOLBin technique that uses a built-in Windows DLL to dump LSASS,
+    bypassing tools that rely on process-name detection of mimikatz/procdump.
+    Common syntax: rundll32.exe comsvcs.dll, MiniDump <PID> <path> full
+references:
+    - https://attack.mitre.org/techniques/T1003/001/
+    - https://lolbas-project.github.io/lolbas/Libraries/Comsvcs/
+author: Psalms (@byteoverride)
+date: 2026/05/15
+tags:
+    - attack.credential-access
+    - attack.t1003.001
+    - attack.defense-evasion
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection:
+        Image|endswith: '\rundll32.exe'
+        CommandLine|contains|all:
+            - 'comsvcs'
+            - 'MiniDump'
+    condition: selection
+falsepositives:
+    - Unknown — comsvcs MiniDump is rarely invoked in legitimate workflows
+level: critical

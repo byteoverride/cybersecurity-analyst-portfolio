@@ -1,0 +1,30 @@
+title: Mshta Executing Remote HTA Content
+id: 6c4d8b2a-9e3f-4a5d-7b8c-1d2e3f4a5b6c
+status: experimental
+description: |
+    Detects mshta.exe executing remote HTA files over HTTP/HTTPS. This is a classic
+    initial-access and execution technique — mshta is signed by Microsoft and can run
+    HTML Application files containing VBScript or JScript directly from a URL.
+references:
+    - https://attack.mitre.org/techniques/T1218/005/
+    - https://lolbas-project.github.io/lolbas/Binaries/Mshta/
+author: Psalms (@byteoverride)
+date: 2026/05/15
+tags:
+    - attack.defense-evasion
+    - attack.t1218.005
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection:
+        Image|endswith: '\mshta.exe'
+        CommandLine|contains:
+            - 'http://'
+            - 'https://'
+            - 'javascript:'
+            - 'vbscript:'
+    condition: selection
+falsepositives:
+    - Legitimate internal HTA applications served from a corporate web server (whitelist by domain)
+level: high

@@ -1,0 +1,39 @@
+title: Modification of SSH authorized_keys File
+id: 8d4c2f7e-1b9a-4e5d-6c3b-7a8f5d4e3c2b
+status: experimental
+description: |
+    Detects writes to SSH authorized_keys files in user home directories or /root.
+    Adding a key here is one of the most common Linux persistence techniques because
+    it survives password rotation, leaves minimal forensic trail outside the file
+    itself, and grants full interactive access.
+references:
+    - https://attack.mitre.org/techniques/T1098/004/
+author: Psalms (@byteoverride)
+date: 2026/05/15
+tags:
+    - attack.persistence
+    - attack.t1098.004
+logsource:
+    product: linux
+    service: auditd
+detection:
+    selection:
+        type: 'PATH'
+        name|endswith: '/.ssh/authorized_keys'
+    selection_syscall:
+        type: 'SYSCALL'
+        syscall:
+            - 'open'
+            - 'openat'
+            - 'write'
+            - 'rename'
+            - 'creat'
+    filter_root_self:
+        type: 'SYSCALL'
+        uid: '0'
+        comm: 'sshd'
+    condition: selection and selection_syscall and not filter_root_self
+falsepositives:
+    - Legitimate key rotation by users
+    - Configuration management tools (Ansible, Puppet) — whitelist by parent process
+level: high

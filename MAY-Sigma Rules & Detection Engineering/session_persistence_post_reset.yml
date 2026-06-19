@@ -1,0 +1,68 @@
+title: Session Persistence After Password Reset
+id: 1a3b5c7d-9e2f-4a6b-8c1d-3e5f7a9b1c2d
+status: experimental
+description: |
+    Detects the session persistence anti-pattern where authentication tokens issued
+    before a password reset remain valid after the reset completes. This rule was
+    derived from a real account takeover finding (HackerOne/Hover ATO research,
+    @byteoverride). The vulnerability is the inverse of what most defenders look for —
+    instead of detecting credential abuse with new sessions, it detects OLD sessions
+    surviving a credential change event, which is the actual indicator that session
+    invalidation logic is broken or that an attacker has retained access.
+
+    Detection logic: correlate password change events with subsequent successful
+    authentications using session tokens whose `iat` (issued-at) timestamp predates
+    the password change. Tokens issued before a password change should never be
+    accepted after that change — if they are, either the session store is broken
+    or an attacker is exploiting it.
+references:
+    - https://attack.mitre.org/techniques/T1550/004/
+    - https://attack.mitre.org/techniques/T1078/
+    - https://owasp.org/www-community/attacks/Session_fixation
+    - https://hackerone.com/byteoverride
+author: Psalms (@byteoverride)
+date: 2026/05/15
+tags:
+    - attack.credential-access
+    - attack.persistence
+    - attack.defense-evasion
+    - attack.t1550.004
+    - attack.t1078
+logsource:
+    product: webapp
+    category: application
+detection:
+    password_change_event:
+        event_type: 'password_change'
+        result: 'success'
+    authenticated_request:
+        event_type: 'authenticated_request'
+        token_issued_at|lt|field: 'password_changed_at'
+    suspicious_indicators:
+        token_issued_at|lt|field: 'password_changed_at'
+        OR:
+            - src_ip|notequal|field: 'password_change_src_ip'
+            - user_agent|notequal|field: 'password_change_user_agent'
+            - geo_country|notequal|field: 'password_change_geo_country'
+    condition: authenticated_request and suspicious_indicators
+falsepositives:
+    - Legitimate users with multiple active devices who change password on one device
+      while another device continues to use a pre-existing session (filter by token age
+      threshold — sessions older than the password change by minutes are far more
+      suspicious than seconds)
+    - Mobile apps that cache auth tokens and don't immediately re-authenticate
+level: high
+
+# IMPLEMENTATION NOTES
+# --------------------
+# This rule requires the application to emit structured logs with:
+#   - password_change events (with src_ip, user_agent, geo_country, timestamp)
+#   - authenticated_request events (with token_iat, src_ip, user_agent, geo_country)
+#
+# If your application doesn't log token issued-at times, this is a gap to close
+# before the rule can fire. Most modern auth frameworks (Auth0, Cognito, custom JWT)
+# expose this in the token payload — just log it.
+#
+# This is the "session-aware" version of T1078 (Valid Accounts) — most detection
+# focuses on new logins from unusual locations, but this catches the OPPOSITE:
+# the session that never went away when it should have.

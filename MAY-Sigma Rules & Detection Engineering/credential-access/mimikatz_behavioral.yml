@@ -1,0 +1,40 @@
+title: Mimikatz Behavioral Detection via LSASS Access
+id: 8a5c4f12-3d2b-4e8a-9c7f-1a2b3c4d5e6f
+status: experimental
+description: |
+    Detects behavioral indicators of Mimikatz execution by monitoring process access to LSASS
+    with access masks commonly used by credential dumping tools. This rule avoids naive
+    process-name matching (which is trivially bypassed by renaming the binary) and instead
+    targets the underlying TTP — opening LSASS memory with specific access rights.
+references:
+    - https://attack.mitre.org/techniques/T1003/001/
+    - https://github.com/gentilkiwi/mimikatz
+    - https://www.elastic.co/security-labs/detect-credential-access
+author: Psalms (@byteoverride)
+date: 2026/05/15
+modified: 2026/05/15
+tags:
+    - attack.credential-access
+    - attack.t1003.001
+logsource:
+    product: windows
+    category: process_access
+detection:
+    selection:
+        TargetImage|endswith: '\lsass.exe'
+        GrantedAccess:
+            - '0x1010'
+            - '0x1410'
+            - '0x1438'
+            - '0x143A'
+            - '0x1FFFFF'
+    filter_legit:
+        SourceImage|endswith:
+            - '\MsMpEng.exe'
+            - '\WmiPrvSE.exe'
+            - '\svchost.exe'
+    condition: selection and not filter_legit
+falsepositives:
+    - Legitimate security tools (EDR, AV) accessing LSASS for inspection
+    - Windows Defender or Microsoft Monitoring Agent processes
+level: high

@@ -1,0 +1,37 @@
+title: Registry Hive Dump via reg.exe save
+id: 9e5a7b3c-4d2f-4a1b-9c8e-7d6f5a4b3c2d
+status: experimental
+description: |
+    Detects extraction of SAM, SYSTEM, or SECURITY registry hives via reg.exe save command.
+    These hives contain local credential material that, combined with offline tools,
+    allows password hash extraction without invoking suspicious DLLs or process access.
+references:
+    - https://attack.mitre.org/techniques/T1003/002/
+    - https://attack.mitre.org/techniques/T1003/004/
+author: Psalms (@byteoverride)
+date: 2026/05/15
+tags:
+    - attack.credential-access
+    - attack.t1003.002
+    - attack.t1003.004
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection:
+        Image|endswith: '\reg.exe'
+        CommandLine|contains:
+            - 'save'
+            - 'export'
+        CommandLine|contains|all:
+            - 'HKLM\SAM'
+    selection_other_hives:
+        Image|endswith: '\reg.exe'
+        CommandLine|contains: 'save'
+        CommandLine|contains:
+            - 'HKLM\SYSTEM'
+            - 'HKLM\SECURITY'
+    condition: selection or selection_other_hives
+falsepositives:
+    - Legitimate backup operations by sysadmins (rare on workstations)
+level: high

@@ -1,0 +1,34 @@
+title: Certutil Used for Remote File Download
+id: 3f8b2e4c-5a7d-4b9e-1c2d-3e4f5a6b7c8d
+status: experimental
+description: |
+    Detects certutil.exe being abused to download remote files via the -urlcache flag.
+    Certutil is a signed Microsoft LOLBin commonly used by attackers to stage payloads
+    while evading detection focused on PowerShell or curl/wget.
+references:
+    - https://attack.mitre.org/techniques/T1105/
+    - https://lolbas-project.github.io/lolbas/Binaries/Certutil/
+author: Psalms (@byteoverride)
+date: 2026/05/15
+tags:
+    - attack.command-and-control
+    - attack.t1105
+    - attack.defense-evasion
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection:
+        Image|endswith: '\certutil.exe'
+        CommandLine|contains:
+            - '-urlcache'
+            - '-verifyctl'
+            - '-split'
+        CommandLine|contains:
+            - 'http://'
+            - 'https://'
+            - 'ftp://'
+    condition: selection
+falsepositives:
+    - Legitimate certificate validation operations (rare with -urlcache + URL)
+level: high

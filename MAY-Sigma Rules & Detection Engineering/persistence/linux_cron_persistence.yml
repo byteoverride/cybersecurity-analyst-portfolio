@@ -1,0 +1,38 @@
+title: Suspicious Modification of Linux Cron Files
+id: 2e5b8c3d-4a9f-4d2b-7c1e-6a5b4c3d2e1f
+status: experimental
+description: |
+    Detects writes to cron-related paths that are common persistence targets for Linux
+    attackers. Monitors /etc/crontab, /etc/cron.*/ directories, /var/spool/cron/*, and
+    user crontab files. Requires auditd watches on these paths (see README for audit
+    rule configuration).
+references:
+    - https://attack.mitre.org/techniques/T1053/003/
+author: Psalms (@byteoverride)
+date: 2026/05/15
+tags:
+    - attack.persistence
+    - attack.privilege-escalation
+    - attack.t1053.003
+logsource:
+    product: linux
+    service: auditd
+detection:
+    selection_paths:
+        type: 'PATH'
+        name|startswith:
+            - '/etc/crontab'
+            - '/etc/cron.'
+            - '/var/spool/cron/'
+    selection_syscall:
+        type: 'SYSCALL'
+        syscall:
+            - 'open'
+            - 'openat'
+            - 'write'
+            - 'rename'
+    condition: selection_paths and selection_syscall
+falsepositives:
+    - Legitimate cron job installation by sysadmins
+    - Package managers installing scheduled tasks
+level: medium

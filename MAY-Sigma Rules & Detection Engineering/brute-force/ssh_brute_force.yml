@@ -1,0 +1,48 @@
+title: SSH Brute Force Attempt
+id: 4a8c2e5b-7d3f-4b1a-9c6d-8e7f5a4b3c2e
+status: experimental
+description: |
+    Detects multiple failed SSH authentication attempts from the same source IP within
+    a short window — the canonical pattern of an SSH brute-force or password-spray attack.
+    Uses Sigma correlation to threshold above noise (single typos by legitimate users).
+references:
+    - https://attack.mitre.org/techniques/T1110/001/
+    - https://attack.mitre.org/techniques/T1110/003/
+author: Psalms (@byteoverride)
+date: 2026/05/15
+tags:
+    - attack.credential-access
+    - attack.t1110.001
+    - attack.t1110.003
+logsource:
+    product: linux
+    service: auth
+detection:
+    selection:
+        process_name: 'sshd'
+        message|contains:
+            - 'Failed password'
+            - 'Invalid user'
+            - 'authentication failure'
+    condition: selection
+falsepositives:
+    - Misconfigured automated systems with wrong credentials
+    - Legitimate users repeatedly mistyping passwords
+level: medium
+---
+title: SSH Brute Force Correlation
+id: 4a8c2e5b-7d3f-4b1a-9c6d-8e7f5a4b3c2f
+status: experimental
+description: |
+    Correlates the underlying SSH failed-authentication signals — flags 10 or more
+    failures from the same source IP in 5 minutes.
+correlation:
+    type: event_count
+    rules:
+        - 4a8c2e5b-7d3f-4b1a-9c6d-8e7f5a4b3c2e
+    group-by:
+        - src_ip
+    timespan: 5m
+    condition:
+        gte: 10
+level: high
